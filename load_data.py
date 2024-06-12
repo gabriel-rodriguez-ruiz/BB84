@@ -17,6 +17,7 @@ file_to_open = data_folder / file_name
 def read_csv(file_to_open):
     "Read a csv file and return a panda´s data frame."
     df = pd.read_csv(file_to_open, skiprows=[0, 1, 3, 4, 5], usecols=[0, 6])
+    df.rename(columns={ df.columns[0]: "Card_Number" }, inplace = True)
     df.rename(columns={ df.columns[1]: "Measurement" }, inplace = True)
     return df
 

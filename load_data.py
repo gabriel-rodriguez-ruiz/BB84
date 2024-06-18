@@ -44,10 +44,20 @@ def load_data(file_to_open):
     "Load data from a csv file to a dataframe."
     df = read_csv(file_to_open)
     df = translate_df(df)
-    if len(df)%2==1:
-        df.loc[len(df.index)] = [41, "X", 
-                                 random.choice(["H/V", "+45/-45"]),
-                                 random.choice([0, 1])]    
+    even_count = len([x for x in df["Card_Number"] if x%2==0]) # Number of Bobs
+    odd_count = len(df["Card_Number"]) - even_count # Number of Alices
+    if even_count>odd_count:     # add an Alice
+        d = even_count - odd_count
+        for i in range(d):
+            df.loc[len(df.index)] = [41 + 2*i, "X",      
+                                     random.choice(["H/V", "+45/-45"]),
+                                     random.choice([0, 1])]
+    elif odd_count>even_count:   # add a Bob
+        d = odd_count - even_count
+        for i in range(d):
+            df.loc[len(df.index)] = [42 + 2*i, "X", 
+                                     random.choice(["H/V", "+45/-45"]),
+                                     None]
     return df
 
 def assign_roles(file_to_open, eavesdropping):
@@ -55,10 +65,17 @@ def assign_roles(file_to_open, eavesdropping):
     Bob_list = []
     Eve_list = []
     df = load_data(file_to_open)
-    for i in range(len(df)):
-        if i%2==0:
-            Alice_list.append(Alice(df.loc[i, "Basis"], df.loc[i, "Result"]))
+    for i, n in enumerate(df["Card_Number"]):
+        if n%2==1:
+            Alice_list.append(Alice(df[df["Card_Number"]==n].at[i, "Basis"],
+                                    df[df["Card_Number"]==n].at[i, "Result"],
+                                    df[df["Card_Number"]==n].at[i, "Card_Number"],
+                                    df[df["Card_Number"]==n].at[i, "Measurement"])
+                              )
             Eve_list.append(Eve(random.choice(["H/V", "+45/-45"]), eavesdropping))
         else:
-            Bob_list.append(Bob(df.loc[i, "Basis"]))
+            Bob_list.append(Bob(df[df["Card_Number"]==n].at[i, "Basis"],
+                                    df[df["Card_Number"]==n].at[i, "Card_Number"],
+                                    df[df["Card_Number"]==n].at[i, "Measurement"])
+                            )
     return Alice_list, Bob_list, Eve_list

@@ -6,6 +6,7 @@ Created on Mon Jun  3 09:11:17 2024
 """
 import pandas as pd
 import matplotlib.pyplot as plt
+import panel as pn
 
 def draw_table(Alice_list, Bob_list):
     Alice_data = pd.DataFrame({"Alice´s Basis": [Alice_list[i].Basis for i in range(len(Alice_list))],
@@ -13,7 +14,7 @@ def draw_table(Alice_list, Bob_list):
     Bob_data = pd.DataFrame({"Bob´s Basis": [Bob_list[i].Basis for i in range(len(Alice_list))],
                          "Bob´s Result": [Bob_list[i].Result for i in range(len(Alice_list))]})
     
-    fig = plt.figure(figsize=(16/2.54, 6/2.54), dpi=300)
+    fig = plt.figure(figsize=(4, 3), dpi=300)
     ax = plt.subplot()
     
     ncols = 4
@@ -82,3 +83,30 @@ def draw_table(Alice_list, Bob_list):
     plt.savefig("BB84.pdf")
     # plt.show()
     return fig, ax
+
+def get_qbit(Alice_list, Bob_list, Eve_list):
+    qubit_list = []
+    for i in range(len(Alice_list)):
+        Alice_list[i].send_to_Bob(Eve_list[i], Bob_list[i])
+        qubit_list.append(Alice_list[i].df.join(Bob_list[i].df,
+                                     lsuffix='_Alice',
+                                     rsuffix='_Bob', how="outer"))
+    qubit_df = pd.concat(qubit_list, ignore_index=True)
+    qubit_df.columns = pd.MultiIndex.from_product([['Alice', 'Bob'],
+                                                   [c for c in Alice_list[0].df.columns]])
+    return qubit_df
+
+def make_table(Alice_list, Bob_list, Eve_list):
+    qubit_df = get_qbit(Alice_list, Bob_list, Eve_list)
+    qubit_df.columns = qubit_df.columns.set_levels(["Base", "Número", "Letra", "Resultado"], level=1)
+    
+    groups = {group: [f"('{group}', 'Número')", f"('{group}', 'Letra')", f"('{group}', 'Base')", f"('{group}', 'Resultado')",
+                 f"('{group}', 'Número')", f"('{group}', 'Letra')", f"('{group}', 'Base')", f"('{group}', 'Resultado')"] for group in qubit_df.columns.get_level_values(0).unique()}
+    titles1 = {(f'{group}', 'Número'): "Número" for group in qubit_df.columns.get_level_values(0).unique()}
+    titles2 = {(f'{group}', 'Letra'): "Letra" for group in qubit_df.columns.get_level_values(0).unique()}
+    titles3 = {(f'{group}', 'Base'): "Base" for group in qubit_df.columns.get_level_values(0).unique()}
+    titles4 = {(f'{group}', 'Resultado'): "Resultado" for group in qubit_df.columns.get_level_values(0).unique()}
+    titles={**titles1, **titles2, **titles3, **titles4, **titles1, **titles2, **titles3, **titles4}
+    
+    table = pn.widgets.Tabulator(value=qubit_df.set_axis(qubit_df.columns.to_flat_index(), axis=1), groups=groups, titles=titles)
+    return table

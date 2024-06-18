@@ -9,7 +9,7 @@ from load_data import assign_roles, load_data
 from characters import Alice, Bob
 from pathlib import Path
 import matplotlib.pyplot as plt
-from draw_table import draw_table
+from draw_table import draw_table, get_qbit
 import sys
 
 if __name__=="__main__":
@@ -18,11 +18,9 @@ if __name__=="__main__":
     file_name = "BB84 03_06_2024-03_06_2024 .csv"
     file_to_open = data_folder / file_name
     
-    eavesdropping = True
+    eavesdropping = False
     
     Alice_list, Bob_list, Eve_list = assign_roles(file_to_open, eavesdropping)
     
-    for i in range(len(Alice_list)):
-        Alice_list[i].send_to_Bob(Eve_list[i], Bob_list[i])
-    
+    qubit_df = get_qbit(Alice_list, Bob_list, Eve_list)
     draw_table(Alice_list, Bob_list)

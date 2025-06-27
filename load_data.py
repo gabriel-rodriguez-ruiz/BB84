@@ -27,17 +27,17 @@ def translate_df(df):
     df["Result"] = None
     for i in range(len(df)):
         if df.loc[i, "Measurement"]=="A":
-            df.loc[i, "Basis"] = "H/V"
-            df.loc[i, "Result"] = 0
+            df.loc[i, "Basis"] = "\u2795" # +
+            df.loc[i, "Result"] = "\u24EA" #0
         elif df.loc[i, "Measurement"]=="B":
-            df.loc[i, "Basis"] = "H/V"
-            df.loc[i, "Result"] = 1
+            df.loc[i, "Basis"] = "\u2795" # +
+            df.loc[i, "Result"] = "\u2460" #1
         elif df.loc[i, "Measurement"]=="C":
-            df.loc[i, "Basis"] = "+45/-45"
-            df.loc[i, "Result"] = 0
+            df.loc[i, "Basis"] = "\u274C" #x
+            df.loc[i, "Result"] = "\u24EA" #0
         elif df.loc[i, "Measurement"]=="D":
-            df.loc[i, "Basis"] = "+45/-45"
-            df.loc[i, "Result"] = 1
+            df.loc[i, "Basis"] = "\u274C" #x
+            df.loc[i, "Result"] = "\u2460" #1
     return df
 
 def load_data(file_to_open):
@@ -49,14 +49,14 @@ def load_data(file_to_open):
     if even_count>odd_count:     # add an Alice
         d = even_count - odd_count
         for i in range(d):
-            df.loc[len(df.index)] = [41 + 2*i, "X",      
-                                     random.choice(["H/V", "+45/-45"]),
+            df.loc[len(df.index)] = [65 + 2*i, "X",      
+                                     random.choice(["\u2795", "\u274C"]),
                                      random.choice([0, 1])]
     elif odd_count>even_count:   # add a Bob
         d = odd_count - even_count
         for i in range(d):
-            df.loc[len(df.index)] = [42 + 2*i, "X", 
-                                     random.choice(["H/V", "+45/-45"]),
+            df.loc[len(df.index)] = [64 + 2*i, "X", 
+                                     random.choice(["\u2795", "\u274C"]),
                                      None]
     return df
 
@@ -72,7 +72,7 @@ def assign_roles(file_to_open, eavesdropping):
                                     df[df["Card_Number"]==n].at[i, "Card_Number"],
                                     df[df["Card_Number"]==n].at[i, "Measurement"])
                               )
-            Eve_list.append(Eve(random.choice(["H/V", "+45/-45"]), eavesdropping))
+            Eve_list.append(Eve(random.choice(["\u2795", "\u274C"]), eavesdropping))
         else:
             Bob_list.append(Bob(df[df["Card_Number"]==n].at[i, "Basis"],
                                     df[df["Card_Number"]==n].at[i, "Card_Number"],

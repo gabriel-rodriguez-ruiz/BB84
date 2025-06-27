@@ -31,7 +31,7 @@ class Character:
             self.Result = photon_result
             return self.Result
         else:
-            self.Result = random.choice([0, 1])
+            self.Result = random.choice(["\u24EA", "\u2460"])
             return self.Result
     def get_DataFrame(self):
         df = pd.DataFrame({"Card_Number":self.Card_Number,

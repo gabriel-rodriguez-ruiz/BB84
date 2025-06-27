@@ -7,6 +7,7 @@ Created on Mon Jun  3 09:11:17 2024
 import pandas as pd
 import matplotlib.pyplot as plt
 import panel as pn
+import numpy as np
 
 def draw_table(Alice_list, Bob_list):
     Alice_data = pd.DataFrame({"Alice´s Basis": [Alice_list[i].Basis for i in range(len(Alice_list))],
@@ -61,7 +62,7 @@ def draw_table(Alice_list, Bob_list):
         ha='center',
         va="center"
     )
-    column_names = ['Base', 'Resultado', 'Base', 'Resultado']
+    column_names = ['Base', 'Bit', 'Base', 'Bit']
     for index, c in enumerate(column_names):
         ha = 'center'
         ax.annotate(
@@ -98,15 +99,97 @@ def get_qbit(Alice_list, Bob_list, Eve_list):
 
 def make_table(Alice_list, Bob_list, Eve_list):
     qubit_df = get_qbit(Alice_list, Bob_list, Eve_list)
-    qubit_df.columns = qubit_df.columns.set_levels(["Base", "Número", "Letra", "Resultado"], level=1)
+    qubit_df.columns = qubit_df.columns.set_levels(["Base", "Estudiante", "Letra", "Bit"], level=1)
     
-    groups = {group: [f"('{group}', 'Número')", f"('{group}', 'Letra')", f"('{group}', 'Base')", f"('{group}', 'Resultado')",
-                 f"('{group}', 'Número')", f"('{group}', 'Letra')", f"('{group}', 'Base')", f"('{group}', 'Resultado')"] for group in qubit_df.columns.get_level_values(0).unique()}
-    titles1 = {(f'{group}', 'Número'): "Número" for group in qubit_df.columns.get_level_values(0).unique()}
+    groups = {group: [f"('{group}', 'Estudiante')", f"('{group}', 'Letra')", f"('{group}', 'Base')", f"('{group}', 'Bit')",
+                 f"('{group}', 'Estudiante')", f"('{group}', 'Letra')", f"('{group}', 'Base')", f"('{group}', 'Bit')"] for group in qubit_df.columns.get_level_values(0).unique()}
+    titles1 = {(f'{group}', 'Estudiante'): "Estudiante" for group in qubit_df.columns.get_level_values(0).unique()}
     titles2 = {(f'{group}', 'Letra'): "Letra" for group in qubit_df.columns.get_level_values(0).unique()}
     titles3 = {(f'{group}', 'Base'): "Base" for group in qubit_df.columns.get_level_values(0).unique()}
-    titles4 = {(f'{group}', 'Resultado'): "Resultado" for group in qubit_df.columns.get_level_values(0).unique()}
+    titles4 = {(f'{group}', 'Bit'): "Bit" for group in qubit_df.columns.get_level_values(0).unique()}
     titles={**titles1, **titles2, **titles3, **titles4, **titles1, **titles2, **titles3, **titles4}
     
-    table = pn.widgets.Tabulator(value=qubit_df.set_axis(qubit_df.columns.to_flat_index(), axis=1), groups=groups, titles=titles)
-    return table
+    checkbox_group = pn.widgets.CheckBoxGroup(
+                                    name='Checkbox Group', options=['Base de Alice', 'Base de Bob',
+                                                                    "Resultados de Alice", "Resultados de Bob"],
+                                        inline=True)
+    
+    
+    qubit_df = qubit_df.set_axis(qubit_df.columns.to_flat_index(), axis=1)
+    qubit_df = qubit_df.drop(columns=[('Alice', 'Letra'), ('Bob', 'Letra')])
+
+    qubit_df_rx = pn.rx(show_character)(checkbox_group.param.value, qubit_df)
+    table = pn.widgets.Tabulator(refs=qubit_df_rx,
+                                 groups=groups, titles=titles,
+                                 disabled=True)
+
+    # table.style.apply(highlight_max,  props='color:white;background-color:darkblue',
+    #                   axis=1)
+    table.style.apply(highlight_key_bits, axis=1)
+    table.style.set_properties(**{'border': '2px solid black',
+                          'color': 'black'})
+    return table, qubit_df, checkbox_group
+
+stylesheet = """
+  .tabulator-cell {
+    font-size: 28px;  // change font size
+  }
+  .tabulator-col-title {
+    font-size: 28px;
+}
+"""
+
+#.tabulator-cell {
+#    font-size: 24px;
+#}
+
+def show_character(selection_list, df):
+    df_filtered = df.copy(deep=True)
+    if 'Base de Alice' not in selection_list:
+        df_filtered[('Alice', 'Base')] = None
+        # df_filtered.style.set_properties(**{'background-color': '#ffffb3'})
+    if 'Base de Bob' not in selection_list:
+        df_filtered[("Bob", "Base")] = None
+        # df_filtered.style.set_properties(**{'background-color': 'red'})
+    if 'Resultados de Alice' not in selection_list:
+        df_filtered[("Alice", "Bit")] = None
+    if 'Resultados de Bob' not in selection_list:
+        df_filtered[("Bob", "Bit")] = None
+    
+    return {"value": df_filtered,
+            "show_index": False,
+            # "styles": {'background-color': '#ffffb3'},
+            "stylesheets": [stylesheet]
+            }
+
+def change_table_style(selection_list, tabulator):
+    if 'Base de Alice' not in selection_list:
+        tabulator.style.set_properties(**{'background-color': '#ffffb3'})
+    else:
+        tabulator.style.set_properties(**{'background-color': 'red'})
+    return selection_list
+
+def handle_event(clicks, tabulator):
+    if clicks%2==0:
+        tabulator.style.set_properties(**{'background-color': '#ffffb3'})
+    else:
+        tabulator.style.set_properties(**{'background-color': 'red'})
+
+def highlight_max(s):
+    '''
+    highlight the maximum in a Series yellow.
+    '''
+    is_max = s == s.max()
+    return ['background-color: yellow' if v else '' for v in is_max]
+
+# def highlight_max(s, props=''):
+#     return np.where(s == np.nanmax(s.values), props, '')
+
+# def highlight_key_bits(s, props=''):
+#     print(s[("Alice", "Base")] == s[("Bob", "Base")])
+#     return np.where(s[("Alice", "Base")] == s[("Bob", "Base")], props, '')
+
+def highlight_key_bits(s):
+    boolean = s[("Alice", "Base")] == s[("Bob", "Base")]
+    return len(s)*['background-color: LightGreen' if boolean else '']
+

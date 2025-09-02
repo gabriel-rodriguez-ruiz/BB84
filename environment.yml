@@ -1,0 +1,37 @@
+name: BB84
+channels:
+  - conda-forge
+dependencies:
+  - dask[complete]
+  - holoviews
+  - hvplot
+  - jupyterlab
+  - notebook
+  - panel
+  - scikit-learn
+  - diskcache
+  - requests
+  - pyarrow
+  - openpyxl
+  - datashader
+  - scikit-learn
+  - pylint
+  - mypy
+  - pytest
+  - isort
+  - black
+  - autoflake
+  - cartopy
+  - geoviews
+  - voila
+  - jupyter-panel-proxy
+  - pip
+  - pandas
+  - matplotlib
+  - numpy
+  - scipy
+  - sys
+  - pathlib
+  - random
+  - pip:
+    - git+https://github.com/holoviz/panel.git#egg=panel

@@ -92,8 +92,8 @@ def get_qbit(Alice_list, Bob_list, Eve_list):
         qubit_list.append(Alice_list[i].df.join(Bob_list[i].df,
                                      lsuffix='_Alice',
                                      rsuffix='_Bob', how="outer"))
-    qubit_df = pd.concat(qubit_list, ignore_index=True)
-    qubit_df.columns = pd.MultiIndex.from_product([['Alice', 'Bob'],
+        qubit_df = pd.concat(qubit_list, ignore_index=True)
+        qubit_df.columns = pd.MultiIndex.from_product([['Alice', 'Bob'],
                                                    [c for c in Alice_list[0].df.columns]])
     return qubit_df
 

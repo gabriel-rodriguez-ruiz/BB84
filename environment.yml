@@ -30,8 +30,6 @@ dependencies:
   - matplotlib
   - numpy
   - scipy
-  - sys
   - pathlib
-  - random
   - pip:
     - git+https://github.com/holoviz/panel.git#egg=panel

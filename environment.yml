@@ -1,4 +1,4 @@
-name: BB84
+name: BB842
 channels:
   - conda-forge
 dependencies:
